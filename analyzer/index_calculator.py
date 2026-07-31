@@ -178,7 +178,7 @@ def add_record(sector_indices: Dict[str, Dict], analysis_results: Dict):
     }
 
     history["records"].append(record)
-    history["records"].sort(key=lambda r: r["timestamp"])
+    history["records"].sort(key=lambda r: r.get("timestamp", r.get("date", "")))
     save_history(history)
 
 
