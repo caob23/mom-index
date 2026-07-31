@@ -1,0 +1,51 @@
+name: Update Market Data
+
+on:
+  schedule:
+    # 每小时整点运行 (UTC时间，对应北京时间 UTC+8)
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install requests beautifulsoup4 lxml
+
+      - name: Run pipeline
+        run: python pipeline.py
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # 获取当前时间（北京时间）
+          NOW=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M')
+
+          # 只提交真正变化的数据文件
+          git add frontend/data/dashboard_data.json
+          git add data/ 2>/dev/null || true
+
+          if git diff --cached --quiet; then
+            echo "No data changes, skipping commit."
+            exit 0
+          fi
+
+          git commit -m "📊 Auto update: $NOW (CST)"
+          git push
