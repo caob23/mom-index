@@ -14,7 +14,8 @@ from collectors.guba_collector import collect_all as collect_guba
 from collectors.xhs_collector import collect_all as collect_xhs
 from analyzer.llm_analyzer import analyze_all
 from analyzer.index_calculator import (
-    compute_sector_index, add_record, get_dashboard_data, SECTOR_NAMES
+    compute_sector_index, add_record, get_dashboard_data, SECTOR_NAMES,
+    load_daily_posts, save_daily_posts, merge_daily_posts,
 )
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
@@ -30,28 +31,42 @@ def run_pipeline():
     # ===== 第1步: 数据采集 =====
     print("\n📡 第1步: 数据采集")
     
-    all_posts = {}
+    # 加载当天已累计的帖子
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    accumulated = load_daily_posts(today_str)
+    acc_total = sum(len(v) for v in accumulated.values())
+    
+    # 采集新帖子
+    new_posts = {}
     
     # 东方财富股吧
     print("  [东方财富股吧]")
     guba_data = collect_guba()
     for sector, posts in guba_data.items():
-        all_posts[sector] = all_posts.get(sector, []) + posts
+        new_posts[sector] = new_posts.get(sector, []) + posts
     
     # 小红书 (如果有API Key)
     print("  [小红书]")
     try:
         xhs_data = collect_xhs()
         for sector, posts in xhs_data.items():
-            all_posts[sector] = all_posts.get(sector, []) + posts
+            new_posts[sector] = new_posts.get(sector, []) + posts
     except Exception as e:
         print(f"  小红书采集跳过: {e}")
     
-    total_collected = sum(len(v) for v in all_posts.values())
-    print(f"\n  共采集 {total_collected} 条帖子\n")
+    new_total = sum(len(v) for v in new_posts.values())
+    print(f"\n  今日已累计 {acc_total} 条 + 本次新采集 {new_total} 条")
     
-    # ===== 第2步: LLM分析 =====
-    print("🧠 第2步: LLM 多维度分析")
+    # 合并去重 → 今日累计全部帖子
+    all_posts = merge_daily_posts(accumulated, new_posts)
+    cumulative_total = sum(len(v) for v in all_posts.values())
+    print(f"  今日累计总计 {cumulative_total} 条（去重后）")
+    
+    # 保存今日累计
+    save_daily_posts(today_str, all_posts)
+    
+    # ===== 第2步: LLM分析（分析当日全部累计帖子） =====
+    print(f"\n🧠 第2步: LLM 多维度分析（累计 {cumulative_total} 条）")
     analysis_results = analyze_all(all_posts)
     
     # 打印每个板块的 top 小白帖

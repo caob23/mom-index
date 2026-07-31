@@ -90,8 +90,9 @@ class AnalysisResult:
     """单条帖子的完整分析结果"""
     post_id: str
     title: str
-    platform: str
-    sector: str
+    url: str = ""              # 帖子链接
+    platform: str = ""
+    sector: str = ""
     
     # 分数
     newbie_score: float = 0.0       # 小白总分 (0-100)
@@ -132,6 +133,7 @@ def analyze_post(post: Dict, sector: str) -> AnalysisResult:
             result = AnalysisResult(
                 post_id=post.get("id", ""),
                 title=title[:80],
+                url=post.get("url", ""),
                 platform=post.get("platform", "unknown"),
                 sector=sector,
                 newbie_score=0,
@@ -144,6 +146,7 @@ def analyze_post(post: Dict, sector: str) -> AnalysisResult:
     result = AnalysisResult(
         post_id=post.get("id", ""),
         title=title[:80],
+        url=post.get("url", ""),
         platform=post.get("platform", "unknown"),
         sector=sector,
     )

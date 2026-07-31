@@ -371,7 +371,7 @@ function renderTopPosts(data) {
       <span class="post-badge ${badgeClass(p.score)}">${badgeText(p.score)} ${p.score}分</span>
       <span style="color:#64748b;font-size:11px">[${p.sector}]</span>
       ${p.intent_label ? `<span style="font-size:11px;margin-left:4px">${p.intent_label}</span>` : ''}
-      ${p.title}
+      ${p.url ? `<a href="${p.url}" target="_blank" style="color:#38bdf8;text-decoration:none" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${p.title}</a>` : p.title}
       ${renderSourceBadge(p.source)}
     </div>
     ${p.reasoning ? `<div class="post-reason">${p.reasoning}</div>` : ''}
