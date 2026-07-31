@@ -2,7 +2,9 @@ name: Deploy to Pages
 on:
   push:
     branches: [master]
-    paths: ['frontend/**']
+  workflow_run:
+    workflows: ["Update Market Data"]
+    types: [completed]
   workflow_dispatch:
 permissions:
   contents: read
