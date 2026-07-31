@@ -230,8 +230,9 @@ function renderCards(data) {
     return;
   }
 
-  document.getElementById('update-time').textContent = 
-    `更新于 ${latest.date}`;
+  const ts = latest.timestamp ? new Date(latest.timestamp.replace(' ', 'T')) : null;
+  const timeStr = ts ? `${ts.getMonth()+1}/${ts.getDate()} ${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}` : latest.date;
+  document.getElementById('update-time').textContent = `更新于 ${timeStr}`;
 
   container.innerHTML = Object.entries(latest.sectors).map(([key, sector]) => {
     const cls = getSignalClass(sector.index);
@@ -283,10 +284,21 @@ function renderCharts(data) {
     const ctx = canvas.getContext('2d');
     const color = SECTOR_COLORS[sector] || '#94a3b8';
     
+    // 同一天的数据显示 HH:MM，跨天显示 MM-DD
+    const dates = records.map(r => r.date);
+    const sameDay = new Set(dates).size === 1;
+    const fmtLabel = (r) => {
+      const t = r.timestamp ? new Date(r.timestamp.replace(' ', 'T')) : null;
+      if (sameDay && t) {
+        return `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+      }
+      return r.date.slice(5);
+    };
+    
     new Chart(ctx, {
       type: 'line',
       data: {
-        labels: records.map(r => r.date.slice(5)),
+        labels: records.map(fmtLabel),
         datasets: [{
           label: SECTOR_NAMES[sector],
           data: records.map(r => r.index),
@@ -311,6 +323,14 @@ function renderCharts(data) {
             borderColor: '#334155',
             borderWidth: 1,
             callbacks: {
+              title: (items) => {
+                const r = records[items[0].dataIndex];
+                if (r.timestamp) {
+                  const t = new Date(r.timestamp.replace(' ', 'T'));
+                  return `${t.getMonth()+1}/${t.getDate()} ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+                }
+                return r.date;
+              },
               label: ctx => `宝妈指数: ${ctx.parsed.y}`
             }
           }
