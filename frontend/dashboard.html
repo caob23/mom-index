@@ -375,7 +375,7 @@ function renderTopPosts(data) {
   });
 
   allTop.sort((a, b) => b.score - a.score);
-  allTop = allTop.slice(0, 8);
+  allTop = allTop.slice(0, 15);
 
   if (!allTop.length) {
     container.innerHTML += '<div class="loading">今日暂无典型小白帖</div>';
