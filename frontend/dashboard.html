@@ -108,6 +108,7 @@ body {
 }
 .post-badge.pure   { background: rgba(239,68,68,0.2); color: #fca5a5; }
 .post-badge.semi   { background: rgba(251,146,60,0.2); color: #fdba74; }
+.post-time { color: #475569; font-size: 11px; margin-left: 6px; }
 
 /* 信息源标签 */
 .source-badge {
@@ -222,6 +223,15 @@ function getEmoji(idx) {
   return '\uD83D\uDD35';
 }
 
+function formatTimestamp(ts) {
+  if (!ts) return '';
+  try {
+    const d = new Date(ts.replace(' ', 'T'));
+    if (isNaN(d)) return '';
+    return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  } catch { return ''; }
+}
+
 function renderCards(data) {
   const container = document.getElementById('cards');
   const latest = data.latest;
@@ -231,7 +241,7 @@ function renderCards(data) {
   }
 
   const ts = latest.timestamp ? new Date(latest.timestamp.replace(' ', 'T')) : null;
-  const timeStr = ts ? `${ts.getMonth()+1}/${ts.getDate()} ${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}` : latest.date;
+  const timeStr = ts ? `${ts.getFullYear()}-${String(ts.getMonth()+1).padStart(2,'0')}-${String(ts.getDate()).padStart(2,'0')} ${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}` : latest.date;
   document.getElementById('update-time').textContent = `更新于 ${timeStr}`;
 
   container.innerHTML = Object.entries(latest.sectors).map(([key, sector]) => {
@@ -391,7 +401,7 @@ function renderTopPosts(data) {
       <span class="post-badge ${badgeClass(p.score)}">${badgeText(p.score)} ${p.score}分</span>
       <span style="color:#64748b;font-size:11px">[${p.sector}]</span>
       ${p.intent_label ? `<span style="font-size:11px;margin-left:4px">${p.intent_label}</span>` : ''}
-      ${p.url ? `<a href="${p.url}" target="_blank" style="color:#38bdf8;text-decoration:none" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${p.title}</a>` : p.title}
+      ${p.url ? `<a href="${p.url}" target="_blank" style="color:#38bdf8;text-decoration:none" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${p.title}</a>` : p.title}<span class="post-time">${formatTimestamp(p.timestamp)}</span>
       ${renderSourceBadge(p.source)}
     </div>
     ${p.reasoning ? `<div class="post-reason">${p.reasoning}</div>` : ''}

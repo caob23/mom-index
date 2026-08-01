@@ -111,6 +111,9 @@ class AnalysisResult:
     
     # 用于前端展示
     key_signals: List[str] = field(default_factory=list)
+    
+    # 帖子时间
+    timestamp: str = ""          # 采集时间 collected_at
 
 
 def analyze_post(post: Dict, sector: str) -> AnalysisResult:
@@ -140,6 +143,7 @@ def analyze_post(post: Dict, sector: str) -> AnalysisResult:
                 newbie_confidence="high",
                 level="垃圾帖",
                 reasoning=f"检测到垃圾/活动帖（命中: 「{spam}」），已过滤，不计入指数。",
+                timestamp=post.get("collected_at", ""),
             )
             return result
     
@@ -149,6 +153,7 @@ def analyze_post(post: Dict, sector: str) -> AnalysisResult:
         url=post.get("url", ""),
         platform=post.get("platform", "unknown"),
         sector=sector,
+        timestamp=post.get("collected_at", ""),
     )
     
     # 1. 逐信号匹配

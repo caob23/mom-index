@@ -130,6 +130,7 @@ def compute_sector_index(analysis_results: List) -> Dict:
                 "intent": r.intent,
                 "intent_label": {"buy": "买入", "sell": "卖出", "neutral": "观望"}.get(r.intent, ""),
                 "key_signals": r.key_signals[:2],
+                "timestamp": r.timestamp,
             }
             for r in sorted(newbie_posts, key=lambda x: x.newbie_score, reverse=True)[:5]
         ],
